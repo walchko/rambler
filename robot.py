@@ -12,9 +12,12 @@ import multiprocessing as mp
 # import simplejson as json
 import time
 from pprint import pprint
+import numpy as np
+
+from Adafruit_LED_Backpack import BicolorMatrix8x8
 
 """
-key-wakeup\r\n'
+key-wakeup\r\n
 slept for 0 minutes 32 seconds\r\n\r\n
 2015-08-24-1648-L   \r\n
 r3-robot/tags/release-3.5.x-tags/release-3.5.4:6058 CLEAN\r\n\r\n
@@ -22,7 +25,7 @@ bootloader id: 4718 6549 82EC CFFF \r\n
 assembly: 3.5-lite-batt\r\n
 revision: 2\r\n
 flash version: 10\r\nflash info crc passed: 1\r\n\r\n
-battery-current-zero 257\r']
+battery-current-zero 257\r
 """
 
 
@@ -84,32 +87,66 @@ class Create2(mp.Process):
 			# time.sleep(0.05)
 
 
-class Camera(object):
+class BiColor(mp.Process):
 	def __init__(self):
-		pass
+		mp.Process.__init__(self)
+		self.display = BicolorMatrix8x8.BicolorMatrix8x8()
+		self.display.clear()
+		self.display.write_display()
+		time.sleep(0.1)
+
+	def __del__(self):
+		self.display.clear()
+		self.display.write_display()
+
+	def rand(self):
+		# colors = [BicolorMatrix8x8.RED, BicolorMatrix8x8.GREEN, BicolorMatrix8x8.YELLOW]
+		leds = np.random.randint(4, size=127)
+		for i, value in enumerate(leds):
+			self.display.set_led(i, 1 if value & BicolorMatrix8x8.GREEN > 0 else 0)
+			self.display.set_led(i, 1 if value & BicolorMatrix8x8.RED > 0 else 0)
+		self.display.write_display()
+
+		# for x in range(8):
+		# 	for y in range(8):
+		# 		# Clear the display buffer.
+		# 		self.display.clear()
+		# 		# Set pixel at position i, j to appropriate color.
+		# 		self.display.set_pixel(x, y, leds[x+y*8])
+		# 		# Write the display buffer to the hardware.  This must be called to
+		# 		# update the actual display LEDs.
+		# 		self.display.write_display()
+		# 		# Delay for a quarter second.
+		# 		time.sleep(0.25)
 
 	def run(self):
+		self.display.begin()
 		while True:
-			print('camera')
-			time.sleep(3)
+			# print('camera')
+			self.rand()
+			print('loop')
+			time.sleep(0.5)
 
 
 def main():
-	bot = Create2()
-	cam = Camera()
+	# bot = Create2()
+	bc = BiColor()
 
 	try:
-		bot.start()
+		# bot.start()
 
-		cam.run()
+		bc.start()
 
-		bot.join()
+		# bot.join()
+		bc.join()
 
 	except KeyboardInterrupt:
-		if bot.is_alive():
-			print('*** Terminating bot ***')
-			bot.terminate()
-
+		# if bot.is_alive():
+		# 	print('*** Terminating bot ***')
+		# 	bot.terminate()
+		if bc.is_alive():
+			print('*** Terminating bc ***')
+			bc.terminate()
 
 if __name__ == '__main__':
 	main()
