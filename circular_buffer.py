@@ -3,6 +3,7 @@
 from __future__ import print_function
 import sparkline
 
+
 class CircularBuffer(object):
 	def __init__(self, size):
 		"""initialization"""
@@ -18,7 +19,7 @@ class CircularBuffer(object):
 		self.sum += value
 		self.max = value if value > self.max else self.max
 		self.min = value if value < self.min else self.min
-		
+
 		if len(self._data) == self.size:
 			self._data[self.index] = value
 		else:
@@ -35,7 +36,6 @@ class CircularBuffer(object):
 
 	def get_all(self):
 		"""return a list of all the elements"""
-		# return(self._data)
 		ret = []
 		if self.index > 0:
 			ret = self._data[self.index:self.size] + self._data[0:self.index]
@@ -45,6 +45,13 @@ class CircularBuffer(object):
 
 	def get_last(self):
 		return self._data[self.index-1]
+
+	def get_first(self):
+		return self._data[self.index]
+
+	def spark(self):
+		data = self.get_all()
+		return sparkline.sparkify(data).encode('utf-8')
 
 
 if __name__ == "__main__":
@@ -58,4 +65,4 @@ if __name__ == "__main__":
 	print('get cb[0]', cb[0])
 	print('get last', cb.get_last())
 	print('ine', cb.get_last(), sparkline.sparkify(cb.get_all()).encode('utf-8'))
-	print(cb.get_last(), sparkline.sparkify(cb.get_all()))
+	print(cb.get_first(), cb.spark(), cb.get_last())

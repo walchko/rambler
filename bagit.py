@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function, division
 import shelve
 import cv2
 import time
@@ -29,15 +30,13 @@ class Bag(object):
 			if f == filename:
 				os.remove(filename)
 		self.db = shelve.open(filename)
+		self.open = True
 		self.data = {}
 		for key in topics:
 			self.data[key] = []
 
 	def __del__(self):
-		for k, v in self.data.items():
-			self.db[k] = v
-		time.sleep(0.5)
-		self.db.close()
+		self.close()
 
 	def push(self, key, data, stringify=False):
 		# have to convert images (binary) to strings
@@ -49,6 +48,14 @@ class Bag(object):
 			self.data[key].append([data, timestamp])
 		else:
 			raise Exception('Bag::push, Invalid key: {}'.format(key))
+
+	def close(self):
+		if self.open:
+			for k, v in self.data.items():
+				self.db[k] = v
+			time.sleep(0.5)
+			self.db.close()
+			self.open = False
 
 # def read(filename):
 # 	db = shelve.open(filename)
@@ -99,7 +106,41 @@ def write():
 	# cap.release()
 
 
+def imu():
+	bag = Bag('imu.dat', ['imu'])
+	imu = IMU()
+
+	for i in range(1000):
+		# grab IMU
+		if i % 100 == 0:
+			print('step:', i)
+		a, m, g = imu.get()
+		bag.push('imu', (a, m, g))
+		time.sleep(0.03)
+
+	bag.close()
+	print('done ...')
+
+
+def check_cal():
+	bag = Bag('check_cal.dat', ['imu'])
+	imu = IMU()
+
+	for i in range(1000):
+		# grab IMU
+		if i % 100 == 0:
+			print('step:', i)
+		a, m, g = imu.get()
+		bag.push('imu', (a, m, g))
+		time.sleep(0.03)
+
+	bag.close()
+	print('done ...')
+
+
 if __name__ == "__main__":
-	write()
+	# imu()
+	check_cal()
+	# write()
 	# time.sleep(2)
 	# read()
