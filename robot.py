@@ -5,7 +5,6 @@
 
 from __future__ import print_function
 from __future__ import division
-# from js import Joystick
 from nxp_imu import IMU
 import platform
 import pycreate2
@@ -15,8 +14,6 @@ from opencvutils import Camera
 # from math import sqrt, atan2
 from lib.circular_buffer import CircularBuffer
 import sparkline
-# from lib.js import Joystick
-# from lib.js import PS4
 
 from Modes import AutoMode, DemoMode, IdleMode, JoyStickMode
 
