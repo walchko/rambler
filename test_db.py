@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 
+from __future__ import print_function, division
 from shelve import DbfilenameShelf as DataBase
 from whichdb import whichdb
+import dumbdbm
+import shelve
 
 
 def write():
-	db = DataBase('not_bsd.dat')
+	# db = DataBase('not_bsd.dat')
+	dumb = dumbdbm.open('test_dumb.dat')
+	db = shelve.Shelf(dumb)
 	db['a'] = range(1000)
 	db['b'] = range(2000)
 	db.close()
@@ -23,5 +28,7 @@ def read():
 
 if __name__ == "__main__":
 	# read()
-	for filename in ['not_bsd.dat', 'imu.dat', 'robot.dat']:
-		print(filename, whichdb(filename))
+	write()
+	# for filename in ['not_bsd.dat', 'imu.dat', 'robot.dat']:
+	# 	print(filename, whichdb(filename))
+	print('test_dumb.dat', whichdb('test_dumb.dat'))
