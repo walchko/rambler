@@ -1,3 +1,7 @@
+# The MIT License
+#
+# Copyright (c) 2017 Kevin Walchko
+
 from __future__ import print_function
 from __future__ import division
 # from js import Joystick
@@ -228,7 +232,7 @@ class JoyStickMode(object):
 			# rot = abs(rot)
 			# rot = 1.0 - rot
 
-			radius = -rot*scale*2.5
+			radius = rot*scale*2.5
 			# if radius >= 0:
 			# 	radius -= 2000
 			# else:

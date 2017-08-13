@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+# The MIT License
+#
+# Copyright (c) 2017 Kevin Walchko
 
 from __future__ import print_function
 from __future__ import division
@@ -58,7 +61,6 @@ class Create2(object):
 
 	def __init__(self, port='/dev/ttyUSB0'):
 		self.bot = pycreate2.Create2(port)
-		# self.js = Joystick()
 		self.camera = Camera(cam='cv')
 		self.camera.init(win=(320, 240), cameraNumber=0)
 
@@ -67,15 +69,13 @@ class Create2(object):
 		#   adc needs access to spi
 		if platform.system() == 'Linux':
 			self.imu = IMU()
-		# 	self.adc = MCP3208()
-		print('Start')
-		# print(self.bot.inputCommands([35]))
-		num = 50
-		self.data = {
-			'current': CircularBuffer(num),
-			'distance': CircularBuffer(num),
-			'voltage': CircularBuffer(num),
-		}
+		print('Start Create2')
+		# num = 50
+		# self.data = {
+		# 	'current': CircularBuffer(num),
+		# 	'distance': CircularBuffer(num),
+		# 	'voltage': CircularBuffer(num),
+		# }
 
 		self.modes = {
 			'js': JoyStickMode(self.bot),
@@ -101,20 +101,16 @@ class Create2(object):
 			raise Exception('Create2::setMode selected mode is invalid: {}'.format(mode))
 
 	def run(self):
-		print('run')
-		# print(self.bot.inputCommands([35]))
+		# print('run')
 		self.bot.start()
-		print('start')
-		# print(self.bot.inputCommands([35]))
+		# print('start')
 		self.bot.safe()
-		print('safe')
+		# print('safe')
 		# self.bot.full()
 
-		self.setMode('js')
-		# self.setMode('demo')
+		# self.setMode('js')
+		self.setMode('demo')
 
-		# run for a certain number of steps
-		# for _ in range(20):
 		while True:
 			# control roobma
 			self.modes[self.current_mode].go()
