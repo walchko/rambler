@@ -3,7 +3,7 @@ __pycache__/
 ._*
 .DS_Store
 *.pyc
-
+.smb*
 
 # Distribution / packaging
 build/
