@@ -5,6 +5,8 @@ import shelve
 from circular_buffer import CircularBuffer
 import random
 from math import sqrt
+from shelve import DbfilenameShelf
+from bagit import Bag
 
 
 def dashboard(data):
@@ -32,46 +34,42 @@ def dashboard(data):
 	print('-'*header)
 
 
-def normalize(d):
-	norm = 1/sqrt(d[0]**2 + d[1]**2 + d[2]**2)
-	# ans = [x*norm for x in d]
-	return norm
+def norm(d):
+	return 1/sqrt(d[0]**2 + d[1]**2 + d[2]**2)
 
 
 def read(filename):
 	length = 30
 	db = shelve.open(filename)
-	imu = db['imu']
-	data = {
-		'accel': CircularBuffer(length),
-		'mag': CircularBuffer(length),
-		'gyro': CircularBuffer(length)
-	}
-	for d, ts in imu:
-		# print(d)
-		data['accel'].push(normalize(d[0]))
-		data['mag'].push(normalize(d[1]))
-		data['gyro'].push(normalize(d[2]))
-	return data
+	ret = {}
+	# print(db.keys())
+	for key in db:
+		# print(key)
+		ret[key] = CircularBuffer(length)
+		data = db[key]
+		for d, ts in data:
+		# for d in data:
+			ret[key].push((d))
+	return ret
 
 
-def dummy():
-	length = 40
-	data = {}
-	data['accel'] = CircularBuffer(length)
-	data['gyros'] = CircularBuffer(length)
-	data['heading'] = CircularBuffer(length)
+def createDummyData(filename, num):
+	# db = DbfilenameShelf(filename)
+	keys = ['accel', 'gyros', 'mag']
+	bag = Bag(filename, ['imu', 'create'])
 
-	# fill with random data
-	for k in data:
-		for _ in range(60):
-			data[k].push(random.randint(-10, 10))
-
-	return data
+	for _ in range(200):
+		a = [random.uniform(-2,2) for x in range(3)]
+		m = [random.uniform(-6,6) for x in range(3)]
+		g = [random.uniform(-100,100) for x in range(3)]
+		bag.push('imu', (a, m, g))
+	bag.close()
 
 
 def run():
-	data = read('imu.dat')
+	# createDummyData('dummy.dat', 200)
+	# print(data)
+	data = read('dummy.dat')
 	dashboard(data)
 
 if __name__ == "__main__":
