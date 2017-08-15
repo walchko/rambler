@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
 from __future__ import print_function, division
-import shelve
+# import shelve
 import cv2
 import time
-import numpy as np
+# import numpy as np
 import os
-import platform
+# import platform
 from nxp_imu import IMU
 import pycreate2
+import simplejson as json
 
 
 """
@@ -25,12 +26,15 @@ filename = 'robot.dat'
 
 class Bag(object):
 	def __init__(self, filename, topics):
-		files = os.listdir('./')
-		for f in files:
-			if f == filename:
-				os.remove(filename)
-		self.db = shelve.open(filename)
-		self.open = True
+		self.filename = filename
+		self.reset()
+		# files = os.listdir('./')
+		# for f in files:
+		# 	if f == filename:
+		# 		os.remove(filename)
+		# self.db = shelve.open(filename)
+		# self.open = True
+		# self.written = False
 		self.data = {}
 		for key in topics:
 			self.data[key] = []
@@ -40,8 +44,8 @@ class Bag(object):
 
 	def push(self, key, data, stringify=False):
 		# have to convert images (binary) to strings
-		# if stringify:
-		# 	data = cv2.imencode('.png', data)[1].tostring()  # no bennefit with doing string (1.9MB)
+		if stringify:
+			data = cv2.imencode('.jpg', data)[1].tostring()  # no bennefit with doing string (1.9MB)
 
 		if key in self.data:
 			timestamp = time.time()
@@ -49,13 +53,35 @@ class Bag(object):
 		else:
 			raise Exception('Bag::push, Invalid key: {}'.format(key))
 
+	# def close(self):
+	# 	if self.open:
+	# 		for k, v in self.data.items():
+	# 			self.db[k] = v
+	# 		time.sleep(0.5)
+	# 		self.db.close()
+	# 		self.open = False
+	def reset(self):
+		files = os.listdir('./')
+		for f in files:
+			if f == self.filename:
+				os.remove(self.filename)
+		self.written = False
+
 	def close(self):
-		if self.open:
-			for k, v in self.data.items():
-				self.db[k] = v
-			time.sleep(0.5)
-			self.db.close()
-			self.open = False
+		if not self.written:
+			with open(self.filename, 'wb') as f:
+				json.dump(self.data, f)
+			self.written = True
+
+	def read(self):
+		with open(self.filename, 'rb') as f:
+			data = json.load(f)
+		self.db = data
+		return len(self.db), data
+
+	def size(self):
+		size = os.path.getsize(self.filename)//(2**10)
+		print('{}: {} kb'.format(self.filename, size))
 
 # def read(filename):
 # 	db = shelve.open(filename)
@@ -77,6 +103,21 @@ class Bag(object):
 # 	print('bye ...')
 # 	cv2.destroyAllWindows()
 # 	db.close()
+
+
+def test():
+	bag = Bag('test.json', ['imu', 'camera'])
+	cap = cv2.VideoCapture(0)
+	time.sleep(0.1)
+
+	for i in range(100):
+		ret, frame = cap.read()
+		if ret:
+			bag.push('camera', frame, True)
+		bag.push('imu', (1, 2, 3))
+		print(i)
+	cap.release()
+	# print('size:', bag.size(), 'kb')
 
 
 def write():
@@ -140,7 +181,8 @@ def check_cal():
 
 if __name__ == "__main__":
 	# imu()
-	check_cal()
+	# check_cal()
 	# write()
 	# time.sleep(2)
 	# read()
+	test()

@@ -4,16 +4,12 @@
 
 from __future__ import print_function
 from __future__ import division
-# from js import Joystick
-from nxp_imu import IMU
-# import platform
-# import pycreate2
+# from nxp_imu import IMU
 import time
 # import numpy as np
-from opencvutils import Camera
-from math import sqrt, atan2, pi
+# from opencvutils import Camera
+from math import sqrt, atan2, sin, cos
 # from lib.circular_buffer import CircularBuffer
-# import sparkline
 from lib.js import Joystick
 
 
@@ -25,7 +21,7 @@ class IdleMode(object):
 		pass
 
 	def go(self):
-		sleep(1)
+		time.sleep(1)
 
 
 class AutoMode(object):
@@ -193,16 +189,18 @@ class JoyStickMode(object):
 		y = ps4.leftStick[1]  # y axis - turn
 		x = ps4.rightStick[0]  # x axis - straight
 
-		# sgn = 1 if x > 0 else -1
-		# mag = sqrt(x**2 + y**2)*sgn
-		# angle = atan2(x, y)/(pi/2)
-		# angle = angle if angle <= 1.0 else 1.0
-		# angle = angle if angle >= -1.0 else -1.0
-
-		print('raw',x,y)
-		# print('mag angle:', mag, angle)
-		self.command(x, y, 200)
+		self.command2(x, y, 300)
 		# self.command(mag, angle, 200)
+
+	def command2(self, x, y, scale=1.0):
+		angle = atan2(x, y)  # x axis is up
+		left = cos(angle)-sin(angle)
+		right = sin(angle)+cos(angle)
+
+		left *= scale/sqrt(2)
+		right *= scale/sqrt(2)
+
+		self.bot.directDrive(right, left)
 
 	def command(self, vel, rot, scale=1.0):
 		"""
@@ -233,9 +231,5 @@ class JoyStickMode(object):
 			# rot = 1.0 - rot
 
 			radius = rot*scale*2.5
-			# if radius >= 0:
-			# 	radius -= 2000
-			# else:
-			# 	radius += 2000
 			vel *= scale
 			self.bot.drive_turn(vel, radius)
