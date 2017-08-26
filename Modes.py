@@ -12,27 +12,26 @@ from lib.circular_buffer import CircularBuffer
 
 
 class IdleMode(object):
-	def __init__(self, bot):
+	def __init__(self, bot, sensors):
 		self.bot = bot
-		# self.sensors = [
-		# 	''
-		# ]
+		self.sensors = sensors
+
 		self.data = {
-			'current': CircularBuffer(20),
-			'voltage': CircularBuffer(20),
+			'current':  CircularBuffer(20),
+			'voltage':  CircularBuffer(20),
 			'distance': CircularBuffer(20),
-			'ir': CircularBuffer(6),
-			'cliff': CircularBuffer(4)
+			'ir':       CircularBuffer(6),
+			'cliff':    CircularBuffer(4)
 		}
 
 	def __del__(self):
 		pass
 
-	def go(self):
-		# time.sleep(1)
-		sensors = self.bot.inputCommands()
-		# time.sleep(0.1)
-		# print(sensors.light_bumper_left)
+	def go(self, all_sensors):
+		sensors = all_sensors['create']
+		if sensors is None:
+			print('No valid sensor info')
+			return
 
 		for s in [sensors.cliff_left_signal, sensors.cliff_front_left_signal, sensors.cliff_front_right_signal, sensors.cliff_right_signal]:
 			if s < 1800:
@@ -107,7 +106,6 @@ class AutoMode(object):
 		self.bot = bot
 
 	def processSafety(self, ir, wheel_drops, bumpers):
-		# print('ir', ir)
 		level = 200
 		vel = 200
 		forward = (vel, 0)
@@ -167,7 +165,7 @@ class AutoMode(object):
 
 		return direction, dt
 
-	def go(self):
+	def go(self, all_sensors):
 		# # grab camera image
 		# if self.camera:
 		# 	ok, img = self.camera.read()
@@ -177,18 +175,13 @@ class AutoMode(object):
 		# 	else:
 		# 		print('<<< bad image >>>')
 
-		sensors = None
-		while not sensors:
-			try:
-				print('No sensor info, is robot asleep????')
-				# time.sleep(1)
-				sensors = self.bot.inputCommands()  # get everything
-			except Exception:
-				continue
+		# sensors = None
 
-		self.data['current'].push(sensors.current)
-		self.data['voltage'].push(sensors.voltage)
-		self.data['distance'].push(sensors.distance)
+		# self.data['current'].push(sensors.current)
+		# self.data['voltage'].push(sensors.voltage)
+		# self.data['distance'].push(sensors.distance)
+
+		sensors = all_sensors['create']
 
 		ir = []
 		for i in [36, 37, 38, 39, 40, 41]:
@@ -232,7 +225,7 @@ class DemoMode(object):
 				['stop', 0, 0.1, 'stop']
 			]
 
-	def go(self):
+	def go(self, all_sensors=None):
 		"""
 		Run through some pre-defined path for testing
 		"""
@@ -250,7 +243,7 @@ class DemoMode(object):
 				self.bot.drive_turn(v, r)
 			elif name in ['direct']:
 				r, l = vel
-				self.bot.directDrive(r, l)
+				self.bot.drive_direct(r, l)
 			else:
 				raise Exception('invalid movement command')
 
@@ -266,7 +259,7 @@ class JoyStickMode(object):
 		self.inv_sqrt_2 = 1/sqrt(2)
 		# self.mode = ''
 
-	def go(self):
+	def go(self, all_sensors=None):
 		ps4 = self.js.get()
 
 		if ps4.buttons[1]:  # pressed triangle
@@ -276,11 +269,9 @@ class JoyStickMode(object):
 		y = ps4.leftStick[1]  # y axis
 		x = ps4.leftStick[0]  # x axis
 
-		# print('raw', x, y)
 		mov = self.command(x, y, 200)
 		l, r = mov
-		# print('control', l, r)
-		self.bot.directDrive(l, r)  # backwards??
+		self.bot.drive_direct(l, r)  # backwards??
 
 	def command(self, x, y, scale=1.0):
 		v = sqrt(x**2 + y**2)

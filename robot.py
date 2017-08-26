@@ -35,17 +35,6 @@ y   /    |   \
 """
 
 
-# class DataRecorder(object):
-# 	def __init__(self, filename):
-# 		self.filename = filename
-#
-# 	def __del__(self):
-# 		pass
-#
-# 	def save(self):
-# 		pass
-
-
 class Create2(object):
 	cr = None
 	adc = None
@@ -59,8 +48,6 @@ class Create2(object):
 		self.camera.init(win=(320, 240), cameraNumber=0)
 
 		# only create if on linux, because:
-		#   imu needs access to i2c
-		#   adc needs access to spi
 		if platform.system() == 'Linux':
 			self.imu = IMU()
 		print('Start Create2')
@@ -71,11 +58,14 @@ class Create2(object):
 		# 	'voltage': CircularBuffer(num),
 		# }
 
+		# self.sensors = None
+		self.sensors = {'create': None, 'imu': None, 'camera': None}
+
 		self.modes = {
 			'js': JoyStickMode(self.bot),
 			'demo': DemoMode(self.bot),
 			'auto': AutoMode(self.bot),
-			'idle': IdleMode(self.bot)
+			'idle': IdleMode(self.bot, self.sensors)
 		}
 
 		self.current_mode = 'idle'
@@ -102,14 +92,16 @@ class Create2(object):
 		# print('safe')
 		# self.bot.full()
 
-		self.setMode('js')
+		# self.setMode('js')
 		# self.setMode('demo')
 		# self.setMode('idle')
+		self.setMode('auto')
 
 		while True:
-			self.modes['idle'].go()
+			self.get_sensors()
+			self.modes['idle'].go(self.sensors)
 			# control roobma
-			self.modes[self.current_mode].go()
+			self.modes[self.current_mode].go(self.sensors)
 			time.sleep(0.1)
 
 	def processImage(self, img):
@@ -130,6 +122,11 @@ class Create2(object):
 		# print('current:', sensor_data['current'])
 		pass
 
+	def get_sensors(self):
+		self.sensors['create'] = self.bot.get_sensors()
+		self.sensors['imu'] = self.imu.get()
+		self.sensors['camera'] = None
+
 
 def main():
 	port = '/dev/ttyUSB0'
@@ -141,8 +138,9 @@ def main():
 	except KeyboardInterrupt:
 		print('bye ...')
 
-	except:
+	except Exception as e:
 		print('Something else happened ... :(')
+		print(e)
 
 
 if __name__ == '__main__':
