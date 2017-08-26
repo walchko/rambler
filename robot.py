@@ -12,8 +12,8 @@ import time
 # import numpy as np
 from opencvutils import Camera
 # from math import sqrt, atan2
-from lib.circular_buffer import CircularBuffer
-import sparkline
+# from .lib.circular_buffer import CircularBuffer
+# import sparkline
 
 from Modes import AutoMode, DemoMode, IdleMode, JoyStickMode
 
@@ -35,18 +35,15 @@ y   /    |   \
 """
 
 
-class DataRecorder(object):
-	def __init__(self, filename):
-		self.filename = filename
-
-	def __del__(self):
-		pass
-
-	def save(self):
-		pass
-
-
-
+# class DataRecorder(object):
+# 	def __init__(self, filename):
+# 		self.filename = filename
+#
+# 	def __del__(self):
+# 		pass
+#
+# 	def save(self):
+# 		pass
 
 
 class Create2(object):
