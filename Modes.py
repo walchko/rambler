@@ -12,7 +12,6 @@ import time
 import numpy as np
 # from opencvutils import Camera
 # from lib.circular_buffer import CircularBuffer
-# import sparkline
 from lib.js import Joystick
 from math import cos, sin, atan2, sqrt
 
