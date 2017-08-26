@@ -5,16 +5,16 @@
 from __future__ import print_function
 from __future__ import division
 # from js import Joystick
-from nxp_imu import IMU
+# from nxp_imu import IMU
 # import platform
 # import pycreate2
 import time
-# import numpy as np
-from opencvutils import Camera
-from math import sqrt, atan2, pi
+import numpy as np
+# from opencvutils import Camera
 # from lib.circular_buffer import CircularBuffer
 # import sparkline
 from lib.js import Joystick
+from math import cos, sin, atan2, sqrt
 
 
 class IdleMode(object):
@@ -25,7 +25,7 @@ class IdleMode(object):
 		pass
 
 	def go(self):
-		sleep(1)
+		time.sleep(1)
 
 
 class AutoMode(object):
@@ -141,6 +141,10 @@ class DemoMode(object):
 			self.path = path
 		else:
 			self.path = [
+				['direct', (250, 250), 2, 'for'],
+				['direct', (-250, -250), 2, 'back'],
+				['direct', (250, -250), 2, 'rite'],
+				['direct', (-250, 250), 2, 'left'],
 				['forward right', (300, -500), 2, 'rite'],
 				['reverse right', (-300, -500), 2, 'rite'],
 				['forward left', (300, 500), 2, 'left'],
@@ -170,6 +174,9 @@ class DemoMode(object):
 			elif name in ['forward right', 'forward left', 'reverse right', 'reverse left']:
 				v, r = vel
 				self.bot.drive_turn(v, r)
+			elif name in ['direct']:
+				r, l = vel
+				self.bot.directDrive(r, l)
 			else:
 				raise Exception('invalid movement command')
 
@@ -190,52 +197,56 @@ class JoyStickMode(object):
 			print('Pressed triangle on PS4 ... bye!')
 			exit()
 
-		y = ps4.leftStick[1]  # y axis - turn
-		x = ps4.rightStick[0]  # x axis - straight
+		# y = ps4.leftStick[1]  # y axis - turn
+		# x = ps4.rightStick[0]  # x axis - straight
+		y = ps4.leftStick[1]  # y axis
+		x = ps4.leftStick[0]  # x axis
 
-		# sgn = 1 if x > 0 else -1
-		# mag = sqrt(x**2 + y**2)*sgn
-		# angle = atan2(x, y)/(pi/2)
-		# angle = angle if angle <= 1.0 else 1.0
-		# angle = angle if angle >= -1.0 else -1.0
-
-		print('raw',x,y)
-		# print('mag angle:', mag, angle)
+		print('raw', x, y)
 		self.command(x, y, 200)
-		# self.command(mag, angle, 200)
 
-	def command(self, vel, rot, scale=1.0):
-		"""
-		vel: 0-1
-		rot: 0-2pi
-		scale: scalar multiplied to velocity
-		"""
-		# vel *= scale
-		# rot *= 200
-		rot = -rot
-		print('cmd:', vel, rot)
-		level = 0.1
-
-		if -level < rot < level:  # a little more than a degree
-			print('straight')
-			self.bot.drive_straight(vel*scale)
-		elif -level < vel < level:
-			print('rotation')
-			sgn = -1 if rot < 0 else 1
-			self.bot.drive_rotate(abs(rot*scale), sgn)
-		else:
-			print('turn')
-			if rot >= 0:
-				rot = 1.0 - rot
-			else:
-				rot = rot + 1.0
-			# rot = abs(rot)
-			# rot = 1.0 - rot
-
-			radius = rot*scale*2.5
-			# if radius >= 0:
-			# 	radius -= 2000
-			# else:
-			# 	radius += 2000
-			vel *= scale
-			self.bot.drive_turn(vel, radius)
+	def command(self, x, y, scale=1.0):
+		v = sqrt(x**2 + y**2)
+		phi = atan2(y, x)
+		# v - max speed
+		v /= sqrt(2)
+		speed = np.array([v, v])
+		M = np.array([
+			[cos(phi), -sin(phi)],
+			[sin(phi), cos(phi)]
+		])
+		return M.dot(speed)
+		# """
+		# vel: 0-1
+		# rot: 0-2pi
+		# scale: scalar multiplied to velocity
+		# """
+		# # vel *= scale
+		# # rot *= 200
+		# rot = -rot
+		# print('cmd:', vel, rot)
+		# level = 0.1
+		#
+		# if -level < rot < level:  # a little more than a degree
+		# 	print('straight')
+		# 	self.bot.drive_straight(vel*scale)
+		# elif -level < vel < level:
+		# 	print('rotation')
+		# 	sgn = -1 if rot < 0 else 1
+		# 	self.bot.drive_rotate(abs(rot*scale), sgn)
+		# else:
+		# 	print('turn')
+		# 	if rot >= 0:
+		# 		rot = 1.0 - rot
+		# 	else:
+		# 		rot = rot + 1.0
+		# 	# rot = abs(rot)
+		# 	# rot = 1.0 - rot
+		#
+		# 	radius = rot*scale*2.5
+		# 	# if radius >= 0:
+		# 	# 	radius -= 2000
+		# 	# else:
+		# 	# 	radius += 2000
+		# 	vel *= scale
+		# 	self.bot.drive_turn(vel, radius)
