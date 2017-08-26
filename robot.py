@@ -102,10 +102,12 @@ class Create2(object):
 		# print('safe')
 		# self.bot.full()
 
-		# self.setMode('js')
-		self.setMode('demo')
+		self.setMode('js')
+		# self.setMode('demo')
+		# self.setMode('idle')
 
 		while True:
+			self.modes['idle'].go()
 			# control roobma
 			self.modes[self.current_mode].go()
 			time.sleep(0.1)
@@ -138,6 +140,9 @@ def main():
 
 	except KeyboardInterrupt:
 		print('bye ...')
+
+	except:
+		print('Something else happened ... :(')
 
 
 if __name__ == '__main__':

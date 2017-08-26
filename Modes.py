@@ -4,27 +4,102 @@
 
 from __future__ import print_function
 from __future__ import division
-# from js import Joystick
-# from nxp_imu import IMU
-# import platform
-# import pycreate2
 import time
 import numpy as np
-# from opencvutils import Camera
-# from lib.circular_buffer import CircularBuffer
 from lib.js import Joystick
 from math import cos, sin, atan2, sqrt
+from lib.circular_buffer import CircularBuffer
 
 
 class IdleMode(object):
 	def __init__(self, bot):
 		self.bot = bot
+		# self.sensors = [
+		# 	''
+		# ]
+		self.data = {
+			'current': CircularBuffer(20),
+			'voltage': CircularBuffer(20),
+			'distance': CircularBuffer(20),
+			'ir': CircularBuffer(6),
+			'cliff': CircularBuffer(4)
+		}
 
 	def __del__(self):
 		pass
 
 	def go(self):
-		time.sleep(1)
+		# time.sleep(1)
+		sensors = self.bot.inputCommands()
+		# time.sleep(0.1)
+		# print(sensors.light_bumper_left)
+
+		for s in [sensors.cliff_left_signal, sensors.cliff_front_left_signal, sensors.cliff_front_right_signal, sensors.cliff_right_signal]:
+			if s < 1800:
+				print('<<<<<<<<<<<>>>>>>>>>>>>>>>>')
+				print(' cliff: {}'.format(s))
+				print('<<<<<<<<<<<>>>>>>>>>>>>>>>>')
+
+		self.data['current'].push(sensors.current)
+		self.data['voltage'].push(sensors.voltage)
+		self.data['distance'].push(sensors.distance)
+
+		for i in [36, 37, 38, 39, 40, 41]:
+			self.data['ir'].push(sensors[i])
+
+		for i in [20, 21, 22, 23]:
+			self.data['cliff'].push(sensors[i])
+
+		po = [
+			'--------------------------------------------------------',
+			'Light Bumper: {:6} {:6} {:6} L|R {:6} {:6} {:6}'.format(
+				sensors.light_bumper_left,
+				sensors.light_bumper_front_left,
+				sensors.light_bumper_center_left,
+				sensors.light_bumper_center_right,
+				sensors.light_bumper_front_right,
+				sensors.light_bumper_right
+			),
+			'Cliff: {:6} {:6} {:6} {:6}'.format(
+				sensors.cliff_left_signal,
+				sensors.cliff_front_left_signal,
+				sensors.cliff_front_right_signal,
+				sensors.cliff_right_signal
+			),
+			'Encoders [L, R]: {:7} {:7}'.format(sensors.encoder_counts_left, sensors.encoder_counts_right),
+			'Distance: {:8}  Total: {:10}'.format(sensors.distance, self.data['distance'].sum),
+			'--------------------------------------------------------',
+			'Power: {:6} mAhr [{:3} %]'.format(sensors.battery_charge, int(100.0*sensors.battery_charge/sensors.battery_capacity)),
+			'Voltage: {:7.1f} V    Current: {:7.1f} A'.format(sensors.voltage/1000, sensors.current/1000)
+		]
+
+		for s in po:
+			print(s)
+
+		header = 80
+		print('='*header)
+		print(' {:>15} [{:>5} {:<5}] {:>5} {:>30} {:<5}'.format(
+			'Sensor',
+			'Max',
+			'Min',
+			'First',
+			' ',
+			'Last'
+		))
+		print('-'*header)
+		# for k in ['voltage', 'current', 'ir']:
+		for k in self.data.keys():
+			print(' {:>15} [{:5.1f} {:5.1f}] {:>5.1f} {:20} {:>5.1f}'.format(
+				k,
+				self.data[k].max,
+				self.data[k].min,
+				self.data[k].get_first(),
+				self.data[k].spark(),
+				self.data[k].get_last(),
+			))
+		print('-'*header)
+
+		time.sleep(0.1)
 
 
 class AutoMode(object):
@@ -188,6 +263,8 @@ class JoyStickMode(object):
 	def __init__(self, bot):
 		self.bot = bot
 		self.js = Joystick()
+		self.inv_sqrt_2 = 1/sqrt(2)
+		# self.mode = ''
 
 	def go(self):
 		ps4 = self.js.get()
@@ -196,56 +273,23 @@ class JoyStickMode(object):
 			print('Pressed triangle on PS4 ... bye!')
 			exit()
 
-		# y = ps4.leftStick[1]  # y axis - turn
-		# x = ps4.rightStick[0]  # x axis - straight
 		y = ps4.leftStick[1]  # y axis
 		x = ps4.leftStick[0]  # x axis
 
-		print('raw', x, y)
-		self.command(x, y, 200)
+		# print('raw', x, y)
+		mov = self.command(x, y, 200)
+		l, r = mov
+		# print('control', l, r)
+		self.bot.directDrive(l, r)  # backwards??
 
 	def command(self, x, y, scale=1.0):
 		v = sqrt(x**2 + y**2)
 		phi = atan2(y, x)
 		# v - max speed
-		v /= sqrt(2)
+		v *= scale * self.inv_sqrt_2
 		speed = np.array([v, v])
 		M = np.array([
 			[cos(phi), -sin(phi)],
 			[sin(phi), cos(phi)]
 		])
 		return M.dot(speed)
-		# """
-		# vel: 0-1
-		# rot: 0-2pi
-		# scale: scalar multiplied to velocity
-		# """
-		# # vel *= scale
-		# # rot *= 200
-		# rot = -rot
-		# print('cmd:', vel, rot)
-		# level = 0.1
-		#
-		# if -level < rot < level:  # a little more than a degree
-		# 	print('straight')
-		# 	self.bot.drive_straight(vel*scale)
-		# elif -level < vel < level:
-		# 	print('rotation')
-		# 	sgn = -1 if rot < 0 else 1
-		# 	self.bot.drive_rotate(abs(rot*scale), sgn)
-		# else:
-		# 	print('turn')
-		# 	if rot >= 0:
-		# 		rot = 1.0 - rot
-		# 	else:
-		# 		rot = rot + 1.0
-		# 	# rot = abs(rot)
-		# 	# rot = 1.0 - rot
-		#
-		# 	radius = rot*scale*2.5
-		# 	# if radius >= 0:
-		# 	# 	radius -= 2000
-		# 	# else:
-		# 	# 	radius += 2000
-		# 	vel *= scale
-		# 	self.bot.drive_turn(vel, radius)

@@ -5,14 +5,16 @@ import sparkline
 
 
 class CircularBuffer(object):
-	def __init__(self, size):
+	def __init__(self, size, mmax=100.0, mmin=0.0):
 		"""initialization"""
-		self.index = 0
+		self.index = 1
 		self.size = size
-		self._data = []
+		self._data = [0.0, 0.0]
 		self.sum = 0.0
 		self.min = 1E900
 		self.max = -1E900
+		# self.min = mmin
+		# self.max = mmax
 
 	def push(self, value):
 		"""append an element"""
