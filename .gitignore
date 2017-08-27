@@ -5,6 +5,8 @@ __pycache__/
 *.pyc
 .smb*
 *.json
+*.jpg
+*.png
 
 # Distribution / packaging
 build/

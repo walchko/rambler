@@ -5,20 +5,29 @@
 
 from __future__ import print_function
 from __future__ import division
-from nxp_imu import IMU
 import platform
-import pycreate2
 import time
-# import numpy as np
-from opencvutils import Camera
-# from math import sqrt, atan2
-# from lib.circular_buffer import CircularBuffer
 import sparkline
+
+# pycreate ----------------
+import pycreate2
+
+# library -----------------
 from lib.bagit import Bag
-from Modes import AutoMode, DemoMode, IdleMode, JoyStickMode
+from lib.circular_buffer import CircularBuffer
+
+# operating modes ---------
+from modes.autonomous import AutoMode
+from modes.demo import DemoMode
+from modes.idle import IdleMode
+from modes.joystick import JoyStickMode
+from modes.sensors import Sensors
+
+# navigation and sensors --
 from ins_nav import AHRS
 from ins_nav.utils import quat2euler
-from lib.circular_buffer import CircularBuffer
+from opencvutils import Camera
+from nxp_imu import IMU
 
 
 """
@@ -65,9 +74,10 @@ class Create2(object):
 
 		self.modes = {
 			'js': JoyStickMode(self.bot),
-			'demo': DemoMode(self.bot, self),
+			'demo': DemoMode(self.bot),
 			'auto': AutoMode(self.bot),
-			'idle': IdleMode(self.bot)
+			'idle': IdleMode(self.bot),
+			'sensors': Sensors(self.bot)
 		}
 
 		# self.bag = Bag('./data/robot-{}.json'.format(time.ctime().replace(' ', '-')), ['imu', 'camera', 'create'])
@@ -100,43 +110,20 @@ class Create2(object):
 		# self.bot.full()
 
 		# self.setMode('js')
-		self.setMode('demo')
+		# self.setMode('demo')
 		# self.setMode('idle')
 		# self.setMode('auto')
+		self.setMode('sensors')
 
 		while True:
 			self.get_sensors()
 			self.printInfo()
 			# control roobma
 			self.modes[self.current_mode].go(self.sensors)
-			time.sleep(0.1)
+			# time.sleep(0.05)
 
 	def processImage(self, img):
 		pass
-
-	def turn(self, angle, speed=100):
-		"""
-		Uses the encoders to turn an angle in degrees. This is a best effort,
-		the results will not be perfect due to wheel sleep and encoder errors.
-
-		CCW is positive
-		CW is negative
-		"""
-		self.get_sensors()
-		turn_angle = 0.0
-
-		if angle > 0:
-			cmd = (speed, -speed)  # R, L
-			scale = -1
-		else:
-			cmd = (-speed, speed)
-			scale = 1
-
-		while abs(turn_angle) < abs(angle):
-			self.bot.drive_direct(*cmd)
-			self.get_sensors()
-			sensors = self.sensors['create']
-			turn_angle += sensors.angle
 
 	def printInfo(self):
 		sensors = self.sensors['create']
@@ -207,13 +194,13 @@ class Create2(object):
 
 		self.distance += cr.distance/1000.0
 
+		# if 'camera' in self.keys:
 		self.sensors['camera'] = None
-		if self.sensors['camera']:
-			ret, img = self.camera.read()
-			if ret:
-				self.sensors['camera'] = img
-				# self.bag.push('camera', img, True)
-				self.processImage(img)
+		ret, img = self.camera.read()
+		if ret:
+			self.sensors['camera'] = img
+		else:
+			print("*** No camera image ***")
 
 
 def main():
@@ -224,10 +211,13 @@ def main():
 		bot.run()
 
 	except KeyboardInterrupt:
-		print('bye ...')
+		print(' ctrl-c pressed, bye ...')
 
 	except Exception as e:
+		print('')
 		print('Something else happened ... :(')
+		print('Maybe the robot is not on ... press the start button')
+		print('-'*30)
 		print(e)
 
 
