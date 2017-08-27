@@ -12,93 +12,93 @@ from lib.circular_buffer import CircularBuffer
 
 
 class IdleMode(object):
-	def __init__(self, bot, sensors):
+	def __init__(self, bot):
 		self.bot = bot
-		self.sensors = sensors
 
-		self.data = {
-			'current':  CircularBuffer(20),
-			'voltage':  CircularBuffer(20),
-			'distance': CircularBuffer(20),
-			'ir':       CircularBuffer(6),
-			'cliff':    CircularBuffer(4)
-		}
+		# self.data = {
+		# 	'current':  CircularBuffer(20),
+		# 	'voltage':  CircularBuffer(20),
+		# 	'distance': CircularBuffer(20),
+		# 	'ir':       CircularBuffer(6),
+		# 	'cliff':    CircularBuffer(4)
+		# }
 
 	def __del__(self):
 		pass
 
 	def go(self, all_sensors):
-		sensors = all_sensors['create']
-		if sensors is None:
-			print('No valid sensor info')
-			return
-
-		for s in [sensors.cliff_left_signal, sensors.cliff_front_left_signal, sensors.cliff_front_right_signal, sensors.cliff_right_signal]:
-			if s < 1800:
-				print('<<<<<<<<<<<>>>>>>>>>>>>>>>>')
-				print(' cliff: {}'.format(s))
-				print('<<<<<<<<<<<>>>>>>>>>>>>>>>>')
-
-		self.data['current'].push(sensors.current)
-		self.data['voltage'].push(sensors.voltage)
-		self.data['distance'].push(sensors.distance)
-
-		for i in [36, 37, 38, 39, 40, 41]:
-			self.data['ir'].push(sensors[i])
-
-		for i in [20, 21, 22, 23]:
-			self.data['cliff'].push(sensors[i])
-
-		po = [
-			'--------------------------------------------------------',
-			'Light Bumper: {:6} {:6} {:6} L|R {:6} {:6} {:6}'.format(
-				sensors.light_bumper_left,
-				sensors.light_bumper_front_left,
-				sensors.light_bumper_center_left,
-				sensors.light_bumper_center_right,
-				sensors.light_bumper_front_right,
-				sensors.light_bumper_right
-			),
-			'Cliff: {:6} {:6} {:6} {:6}'.format(
-				sensors.cliff_left_signal,
-				sensors.cliff_front_left_signal,
-				sensors.cliff_front_right_signal,
-				sensors.cliff_right_signal
-			),
-			'Encoders [L, R]: {:7} {:7}'.format(sensors.encoder_counts_left, sensors.encoder_counts_right),
-			'Distance: {:8}  Total: {:10}'.format(sensors.distance, self.data['distance'].sum),
-			'--------------------------------------------------------',
-			'Power: {:6} mAhr [{:3} %]'.format(sensors.battery_charge, int(100.0*sensors.battery_charge/sensors.battery_capacity)),
-			'Voltage: {:7.1f} V    Current: {:7.1f} A'.format(sensors.voltage/1000, sensors.current/1000)
-		]
-
-		for s in po:
-			print(s)
-
-		header = 80
-		print('='*header)
-		print(' {:>15} [{:>5} {:<5}] {:>5} {:>30} {:<5}'.format(
-			'Sensor',
-			'Max',
-			'Min',
-			'First',
-			' ',
-			'Last'
-		))
-		print('-'*header)
-		# for k in ['voltage', 'current', 'ir']:
-		for k in self.data.keys():
-			print(' {:>15} [{:5.1f} {:5.1f}] {:>5.1f} {:20} {:>5.1f}'.format(
-				k,
-				self.data[k].max,
-				self.data[k].min,
-				self.data[k].get_first(),
-				self.data[k].spark(),
-				self.data[k].get_last(),
-			))
-		print('-'*header)
-
-		time.sleep(0.1)
+		time.sleep(0.4)
+		# sensors = all_sensors['create']
+		# if sensors is None:
+		# 	print('No valid sensor info')
+		# 	return
+		#
+		# for s in [sensors.cliff_left_signal, sensors.cliff_front_left_signal, sensors.cliff_front_right_signal, sensors.cliff_right_signal]:
+		# 	if s < 1800:
+		# 		print('<<<<<<<<<<<>>>>>>>>>>>>>>>>')
+		# 		print(' cliff: {}'.format(s))
+		# 		print('<<<<<<<<<<<>>>>>>>>>>>>>>>>')
+		#
+		# self.data['current'].push(sensors.current)
+		# self.data['voltage'].push(sensors.voltage)
+		# self.data['distance'].push(sensors.distance)
+		#
+		# for i in [36, 37, 38, 39, 40, 41]:
+		# 	self.data['ir'].push(sensors[i])
+		#
+		# for i in [20, 21, 22, 23]:
+		# 	self.data['cliff'].push(sensors[i])
+		#
+		# po = [
+		# 	'--------------------------------------------------------',
+		# 	'Light Bumper: {:6} {:6} {:6} L|R {:6} {:6} {:6}'.format(
+		# 		sensors.light_bumper_left,
+		# 		sensors.light_bumper_front_left,
+		# 		sensors.light_bumper_center_left,
+		# 		sensors.light_bumper_center_right,
+		# 		sensors.light_bumper_front_right,
+		# 		sensors.light_bumper_right
+		# 	),
+		# 	'Cliff: {:6} {:6} {:6} {:6}'.format(
+		# 		sensors.cliff_left_signal,
+		# 		sensors.cliff_front_left_signal,
+		# 		sensors.cliff_front_right_signal,
+		# 		sensors.cliff_right_signal
+		# 	),
+		# 	'Encoders [L, R]: {:7} {:7}'.format(sensors.encoder_counts_left, sensors.encoder_counts_right),
+		# 	'Distance: {:8}  Total: {:10}'.format(sensors.distance, self.data['distance'].sum),
+		# 	'--------------------------------------------------------',
+		# 	'Power: {:6} mAhr [{:3} %]'.format(sensors.battery_charge, int(100.0*sensors.battery_charge/sensors.battery_capacity)),
+		# 	'Voltage: {:7.1f} V    Current: {:7.1f} A'.format(sensors.voltage/1000, sensors.current/1000)
+		# ]
+		#
+		# for s in po:
+		# 	print(s)
+		#
+		# header = 80
+		# print('='*header)
+		# print(' {:>15} [{:>5} {:<5}] {:>5} {:>30} {:<5}'.format(
+		# 	'Sensor',
+		# 	'Max',
+		# 	'Min',
+		# 	'First',
+		# 	' ',
+		# 	'Last'
+		# ))
+		# print('-'*header)
+		# # for k in ['voltage', 'current', 'ir']:
+		# for k in self.data.keys():
+		# 	print(' {:>15} [{:5.1f} {:5.1f}] {:>5.1f} {:20} {:>5.1f}'.format(
+		# 		k,
+		# 		self.data[k].max,
+		# 		self.data[k].min,
+		# 		self.data[k].get_first(),
+		# 		self.data[k].spark(),
+		# 		self.data[k].get_last(),
+		# 	))
+		# print('-'*header)
+		#
+		# time.sleep(0.1)
 
 
 class AutoMode(object):
@@ -182,6 +182,24 @@ class AutoMode(object):
 		# self.data['distance'].push(sensors.distance)
 
 		sensors = all_sensors['create']
+
+		ir_move = [-30, -60, -90, 90, 60, 30]
+		ir = []
+		for i in [36, 37, 38, 39, 40, 41]:
+			ir.append(sensors[i])
+
+		cliff_move = [-45, -90, 90, 45]
+		cliff = []
+		for i in [20, 21, 22, 23]:
+			cliff.append(sensors[i])
+
+		for s, a in zip(ir, ir_move):
+			if s > 1000:
+				self.bot.turn(a)
+
+		for s, a in zip(cliff, cliff_move):
+			if s < 1700:
+				self.bot.turn(a)
 
 		ir = []
 		for i in [36, 37, 38, 39, 40, 41]:
