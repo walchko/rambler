@@ -70,7 +70,7 @@ class Bag(object):
 	def push(self, key, data, stringify=False):
 		# have to convert images (binary) to strings
 		if stringify:
-			print('stringified')
+			# print('stringified')
 			data = self.encodeB64(data)
 			if key not in self.data['stringified']:
 				self.data['stringified'].append(key)
@@ -78,7 +78,7 @@ class Bag(object):
 		if key in self.data:
 			timestamp = time.time()
 			self.data[key].append((data, timestamp))
-			print(key)
+			# print(key)
 		else:
 			raise Exception('Bag::push, Invalid key: {}'.format(key))
 
@@ -105,7 +105,7 @@ class Bag(object):
 
 		for key in data['stringified']:
 			tmp = []
-			print(key)
+			# print(key)
 			# print(data[key])
 			for b64, datestamp in data[key]:
 				img = self.decodeB64(b64, 1)
@@ -118,3 +118,4 @@ class Bag(object):
 	def size(self):
 		size = os.path.getsize(self.filename)//(2**10)
 		print('{}: {} kb'.format(self.filename, size))
+		return size

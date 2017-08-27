@@ -65,25 +65,26 @@ class Create2(object):
 
 		self.modes = {
 			'js': JoyStickMode(self.bot),
-			'demo': DemoMode(self.bot),
+			'demo': DemoMode(self.bot, self),
 			'auto': AutoMode(self.bot),
 			'idle': IdleMode(self.bot)
 		}
 
-		self.bag = Bag('./robot-{}.json'.format(time.ctime().replace(' ', '-')), ['imu', 'camera', 'create'])
+		# self.bag = Bag('./data/robot-{}.json'.format(time.ctime().replace(' ', '-')), ['imu', 'camera', 'create'])
 
 		self.current_mode = 'idle'
 
 		self.last_time = time.time()
 
 		self.data = {
-			# 'r': CircularBuffer(20),
-			# 'p': CircularBuffer(20),
-			'y': CircularBuffer(20),
+			# 'r': CircularBuffer(30),
+			# 'p': CircularBuffer(30),
+			'y': CircularBuffer(30),
 		}
 
 	def __del__(self):
-		self.bag.close()
+		# self.bag.close()
+		self.bot.drive_direct(0, 0)
 		self.current_mode = 'idle'
 		print('Create2 robot is exiting ...')
 
@@ -98,8 +99,8 @@ class Create2(object):
 		self.bot.safe()
 		# self.bot.full()
 
-		self.setMode('js')
-		# self.setMode('demo')
+		# self.setMode('js')
+		self.setMode('demo')
 		# self.setMode('idle')
 		# self.setMode('auto')
 
@@ -113,24 +114,29 @@ class Create2(object):
 	def processImage(self, img):
 		pass
 
-	def turn(self, angle):
+	def turn(self, angle, speed=100):
+		"""
+		Uses the encoders to turn an angle in degrees. This is a best effort,
+		the results will not be perfect due to wheel sleep and encoder errors.
+
+		CCW is positive
+		CW is negative
+		"""
 		self.get_sensors()
-		sensors = self.sensors['create']
-		# start = sensors.angle
-		des = sensors.angle + angle
+		turn_angle = 0.0
 
 		if angle > 0:
-			cmd = (-200, 200)
-			scale = 1
-		else:
-			cmd = (200, -200)
+			cmd = (speed, -speed)  # R, L
 			scale = -1
+		else:
+			cmd = (-speed, speed)
+			scale = 1
 
-		while scale*(des - sensors.angle) < 0:
+		while abs(turn_angle) < abs(angle):
 			self.bot.drive_direct(*cmd)
-			time.sleep(0.1)
 			self.get_sensors()
 			sensors = self.sensors['create']
+			turn_angle += sensors.angle
 
 	def printInfo(self):
 		sensors = self.sensors['create']
@@ -181,6 +187,7 @@ class Create2(object):
 			),
 			'  Encoders: {:7} L|R {:7}'.format(sensors.encoder_counts_left, sensors.encoder_counts_right),
 			'  Distance Delta: {:8} mm  Total: {:10.1f} m'.format(sensors.distance, self.distance),
+			'  Yaw: {:8.1f} {:30} degrees'.format(self.data['y'].get_last(), self.data['y'].spark()),
 			'--------------------------------------------------------',
 			'  Power: {:6} mAhr [{:3} %]'.format(sensors.battery_charge, int(100.0*sensors.battery_charge/sensors.battery_capacity)),
 			'  Voltage: {:7.1f} V    Current: {:7.1f} A'.format(sensors.voltage/1000, sensors.current/1000)
@@ -192,20 +199,20 @@ class Create2(object):
 	def get_sensors(self):
 		cr = self.bot.get_sensors()
 		self.sensors['create'] = cr
-		self.bag.push('camera', cr)
+		# self.bag.push('create', cr)
 
 		imu = self.imu.get()
 		self.sensors['imu'] = imu
-		self.bag.push('imu', imu)
+		# self.bag.push('imu', imu)
 
-		self.distance += self.sensors.distance/1000.0
+		self.distance += cr.distance/1000.0
 
 		self.sensors['camera'] = None
 		if self.sensors['camera']:
 			ret, img = self.camera.read()
 			if ret:
 				self.sensors['camera'] = img
-				self.bag.push('camera', img, True)
+				# self.bag.push('camera', img, True)
 				self.processImage(img)
 
 

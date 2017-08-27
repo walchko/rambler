@@ -15,90 +15,11 @@ class IdleMode(object):
 	def __init__(self, bot):
 		self.bot = bot
 
-		# self.data = {
-		# 	'current':  CircularBuffer(20),
-		# 	'voltage':  CircularBuffer(20),
-		# 	'distance': CircularBuffer(20),
-		# 	'ir':       CircularBuffer(6),
-		# 	'cliff':    CircularBuffer(4)
-		# }
-
 	def __del__(self):
 		pass
 
 	def go(self, all_sensors):
 		time.sleep(0.4)
-		# sensors = all_sensors['create']
-		# if sensors is None:
-		# 	print('No valid sensor info')
-		# 	return
-		#
-		# for s in [sensors.cliff_left_signal, sensors.cliff_front_left_signal, sensors.cliff_front_right_signal, sensors.cliff_right_signal]:
-		# 	if s < 1800:
-		# 		print('<<<<<<<<<<<>>>>>>>>>>>>>>>>')
-		# 		print(' cliff: {}'.format(s))
-		# 		print('<<<<<<<<<<<>>>>>>>>>>>>>>>>')
-		#
-		# self.data['current'].push(sensors.current)
-		# self.data['voltage'].push(sensors.voltage)
-		# self.data['distance'].push(sensors.distance)
-		#
-		# for i in [36, 37, 38, 39, 40, 41]:
-		# 	self.data['ir'].push(sensors[i])
-		#
-		# for i in [20, 21, 22, 23]:
-		# 	self.data['cliff'].push(sensors[i])
-		#
-		# po = [
-		# 	'--------------------------------------------------------',
-		# 	'Light Bumper: {:6} {:6} {:6} L|R {:6} {:6} {:6}'.format(
-		# 		sensors.light_bumper_left,
-		# 		sensors.light_bumper_front_left,
-		# 		sensors.light_bumper_center_left,
-		# 		sensors.light_bumper_center_right,
-		# 		sensors.light_bumper_front_right,
-		# 		sensors.light_bumper_right
-		# 	),
-		# 	'Cliff: {:6} {:6} {:6} {:6}'.format(
-		# 		sensors.cliff_left_signal,
-		# 		sensors.cliff_front_left_signal,
-		# 		sensors.cliff_front_right_signal,
-		# 		sensors.cliff_right_signal
-		# 	),
-		# 	'Encoders [L, R]: {:7} {:7}'.format(sensors.encoder_counts_left, sensors.encoder_counts_right),
-		# 	'Distance: {:8}  Total: {:10}'.format(sensors.distance, self.data['distance'].sum),
-		# 	'--------------------------------------------------------',
-		# 	'Power: {:6} mAhr [{:3} %]'.format(sensors.battery_charge, int(100.0*sensors.battery_charge/sensors.battery_capacity)),
-		# 	'Voltage: {:7.1f} V    Current: {:7.1f} A'.format(sensors.voltage/1000, sensors.current/1000)
-		# ]
-		#
-		# for s in po:
-		# 	print(s)
-		#
-		# header = 80
-		# print('='*header)
-		# print(' {:>15} [{:>5} {:<5}] {:>5} {:>30} {:<5}'.format(
-		# 	'Sensor',
-		# 	'Max',
-		# 	'Min',
-		# 	'First',
-		# 	' ',
-		# 	'Last'
-		# ))
-		# print('-'*header)
-		# # for k in ['voltage', 'current', 'ir']:
-		# for k in self.data.keys():
-		# 	print(' {:>15} [{:5.1f} {:5.1f}] {:>5.1f} {:20} {:>5.1f}'.format(
-		# 		k,
-		# 		self.data[k].max,
-		# 		self.data[k].min,
-		# 		self.data[k].get_first(),
-		# 		self.data[k].spark(),
-		# 		self.data[k].get_last(),
-		# 	))
-		# print('-'*header)
-		#
-		# time.sleep(0.1)
 
 
 class AutoMode(object):
@@ -220,27 +141,30 @@ class AutoMode(object):
 
 
 class DemoMode(object):
-	def __init__(self, bot, path=None):
+	def __init__(self, bot, create2, path=None):
 		self.bot = bot
+		self.create = create2
 		if path:
 			self.path = path
 		else:
 			self.path = [
-				['direct', (250, 250), 2, 'for'],
-				['direct', (-250, -250), 2, 'back'],
-				['direct', (250, -250), 2, 'rite'],
-				['direct', (-250, 250), 2, 'left'],
-				['forward right', (300, -500), 2, 'rite'],
-				['reverse right', (-300, -500), 2, 'rite'],
-				['forward left', (300, 500), 2, 'left'],
-				['reverse left', (-300, 500), 2, 'rite'],
-				['forward', 200, 2, 'for'],
-				['back', -200, 2, 'back'],
-				['stop', 0, 0.1, 'stop'],
-				['turn right', 100, 2, 'rite'],
-				['turn left', -100, 4, 'left'],
-				['turn right', 100, 2, 'rite'],
-				['stop', 0, 0.1, 'stop']
+				['turn angle', -90, 1, 'left'],
+				['turn angle', 90, 1, 'right'],
+				# ['direct', (250, 250), 2, 'for'],
+				# ['direct', (-250, -250), 2, 'back'],
+				# ['direct', (250, -250), 2, 'rite'],
+				# ['direct', (-250, 250), 2, 'left'],
+				# ['forward right', (300, -500), 2, 'rite'],
+				# ['reverse right', (-300, -500), 2, 'rite'],
+				# ['forward left', (300, 500), 2, 'left'],
+				# ['reverse left', (-300, 500), 2, 'rite'],
+				# ['forward', 200, 2, 'for'],
+				# ['back', -200, 2, 'back'],
+				# ['stop', 0, 0.1, 'stop'],
+				# ['turn right', 100, 2, 'rite'],
+				# ['turn left', -100, 4, 'left'],
+				# ['turn right', 100, 2, 'rite'],
+				['stop', 0, 3, 'stop']
 			]
 
 	def go(self, all_sensors=None):
@@ -250,7 +174,7 @@ class DemoMode(object):
 		for mov in self.path:
 			# move robot
 			name, vel, dt, string = mov
-			print('movement:', name)
+			print('  movement:', name)
 			self.bot.digit_led_ascii(string)
 			if name in ['forward', 'back', 'stop']:
 				self.bot.drive_straight(vel)
@@ -262,6 +186,8 @@ class DemoMode(object):
 			elif name in ['direct']:
 				r, l = vel
 				self.bot.drive_direct(r, l)
+			elif name in ['turn angle']:
+				self.create.turn(vel)
 			else:
 				raise Exception('invalid movement command')
 
