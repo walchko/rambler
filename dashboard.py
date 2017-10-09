@@ -2,7 +2,7 @@
 
 from __future__ import print_function, division
 import shelve
-from circular_buffer import CircularBuffer
+from lib.circular_buffer import CircularBuffer
 import random
 from math import sqrt
 

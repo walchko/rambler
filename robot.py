@@ -110,10 +110,10 @@ class Create2(object):
 		# self.bot.full()
 
 		# self.setMode('js')
-		# self.setMode('demo')
+		self.setMode('demo')
 		# self.setMode('idle')
 		# self.setMode('auto')
-		self.setMode('sensors')
+		# self.setMode('sensors')
 
 		while True:
 			self.get_sensors()
@@ -161,6 +161,7 @@ class Create2(object):
 				sensors.light_bumper_front_left,
 				sensors.light_bumper_center_left,
 				sparkline.sparkify(ir).encode('utf-8'),
+                # '',
 				sensors.light_bumper_center_right,
 				sensors.light_bumper_front_right,
 				sensors.light_bumper_right
@@ -169,12 +170,13 @@ class Create2(object):
 				sensors.cliff_left_signal,
 				sensors.cliff_front_left_signal,
 				sparkline.sparkify(cliff).encode('utf-8'),
+                # '',
 				sensors.cliff_front_right_signal,
 				sensors.cliff_right_signal
 			),
 			'  Encoders: {:7} L|R {:7}'.format(sensors.encoder_counts_left, sensors.encoder_counts_right),
 			'  Distance Delta: {:8} mm  Total: {:10.1f} m'.format(sensors.distance, self.distance),
-			'  Yaw: {:8.1f} {:30} degrees'.format(self.data['y'].get_last(), self.data['y'].spark()),
+			# '  Yaw: {:8.1f} {:30} degrees'.format(self.data['y'].get_last(), self.data['y'].spark()),
 			'--------------------------------------------------------',
 			'  Power: {:6} mAhr [{:3} %]'.format(sensors.battery_charge, int(100.0*sensors.battery_charge/sensors.battery_capacity)),
 			'  Voltage: {:7.1f} V    Current: {:7.1f} A'.format(sensors.voltage/1000, sensors.current/1000)
