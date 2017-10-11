@@ -6,7 +6,8 @@ import simplejson as json
 import base64
 import cv2
 import numpy as np
-import time
+# import time
+
 
 def decodeB64(b64, depth=3):
     """base64 to OpenCV"""

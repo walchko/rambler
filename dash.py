@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
 from __future__ import division, print_function
-from the_collector.bagit import BagReader
+from the_collector import BagReader
 import cv2
-# import time
 
 
 def pCamera(frame):
@@ -14,10 +13,6 @@ def pCamera(frame):
 def pIMU(a, m):
 	print('Accel: {:6.2f} {:6.2f} {:6.2f}'.format(*a))
 	print('Mag: {:6.2f} {:6.2f} {:6.2f}'.format(*m))
-
-
-def pCreate(cr):
-	print('')
 
 
 def read_bag(filename, compress):
@@ -32,13 +27,9 @@ def read_bag(filename, compress):
 	accel = data['accel']
 	mag = data['mag']
 
-	_, start = accel[0]
-
-	for i, pt in enumerate(cam):
-		img, ts = pt
-		print('Time: {}'.format(ts - start))
-		pCamera(img)
-		pIMU(accel[i][0], mag[i][0])
+	for c, a, m in zip(cam, accel, mag):
+		pIMU(a[0], m[0])
+		pCamera(c[0])
 
 
 if __name__ == "__main__":
