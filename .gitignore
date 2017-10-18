@@ -4,8 +4,6 @@ __pycache__/
 .DS_Store
 *.pyc
 .smb*
-*.jpg
-*.png
 
 # Distribution / packaging
 build/
