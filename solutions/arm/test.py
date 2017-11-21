@@ -11,7 +11,7 @@ def run(ser, servo, angle):
 	# cmd = '#0 P1500 #1 P1500 #2 P1500 #3 P1500 #4 P1500 T4000\r'
 	# [500, 2200] - 0
 	# [700, 2300] - 1-4
-	pwm = [700, 2300]       # change me
+	pwm = [700, 2400]       # change me
 	angle_range = [0, 180]  # change me
 
 	# check bounds
@@ -33,14 +33,17 @@ def run(ser, servo, angle):
 	print('servo[{}] -> {}  cmd: {}'.format(servo, angle, cmd))
 	ser.write(cmd)
 
+
 if __name__ == '__main__':
 	# grab command line args
 	if len(sys.argv) != 3:
 		print("Error: Please use this as follows:")
-		print("    test [port] [servo_num] [angle_deg]")
+		print("    test [servo_num] [angle_deg]")
 		exit(1)
 
-	ser = serial.Serial('COM3', 115200)
+	# port = 'COM3'
+	port = '/dev/tty.usbserial-FTF7FUMR'
+	ser = serial.Serial(port, 115200)
 	if not ser.isOpen():
 		raise Exception('Arm::init() could not open', port)
 
