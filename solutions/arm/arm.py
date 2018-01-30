@@ -38,12 +38,13 @@ class Arm(object):
 		servo_range = [0, 180]
 		self.slope = (self.pwm[1] - self.pwm[0])/(servo_range[1] - servo_range[0])
 		self.intercept = self.pwm[0] - self.slope * servo_range[0]
-
-		self.ser = serial.Serial(port, 115200)
+		# speed = 9600
+		speed = 115200
+		self.ser = serial.Serial(port, speed)
 		if not self.ser.isOpen():
 			raise Exception('Arm::init() could not open', port)
 		else:
-			print('Arm opened {} @ 115200'.format(port))
+			print('Arm opened {} @ {}'.format(port, speed))
 
 	def __del__(self):
 		time.sleep(3)
@@ -71,15 +72,18 @@ class Arm(object):
 		angles: array of arm angles
 		"""
 		# correct dh frame and servo angles
-		angles[3] += pi/2  # angles - wrist correction
-		# angles[3] = pi/2 - angles[3]  # points FIXME: points like this, but angles likes the other ... frame backwards?
+		# angles[3] += pi/2  # angles - wrist correction
+		angles[3] = pi/2 - angles[3]  # points FIXME: points like this, but angles likes the other ... frame backwards?
 		angles[0] += pi/2  # base correction
+
+		tmp = [r*180/pi for r in angles]
+		print('angles:', tmp)
 
 		# cmd = '#0 P1500 #1 P1500 #2 P1500 #3 P1500 #4 P1500 T4000\r'
 		cmd = []
 		for channel, a in enumerate(angles):
 			pwm = self.angle2pwm(a)
-			if self.pwm[0] > pwm < self.pwm[1]:
+			if self.pwm[0] > pwm  or pwm > self.pwm[1]:
 				print('ERROR: servo[{}] PWM{} out of limits {}'.format(channel, self.pwm, pwm))
 				raise Exception('PWM value out of range')
 			cmd.append('#{} P{}'.format(channel, pwm))
@@ -93,7 +97,7 @@ class Arm(object):
 		print('  cmd: {}\n'.format(cmd))
 
 		self.ser.write(cmd)
-		time.sleep(speed/1000)
+		time.sleep(1.5*speed/1000)
 
 	def inverse(self, x, y, z, orient, claw=0):
 		"""
@@ -164,7 +168,7 @@ angles_lab = [
 	[0, 90, 90, 0, Arm.CLAW_OPEN],
 	[0, 90, 0, 0, Arm.CLAW_CLOSED],
 	[0, 90, 0, -90, Arm.CLAW_OPEN],
-	[0, 90, 0, 180, Arm.CLAW_CLOSED],
+	[0, 90, 0, 90, Arm.CLAW_CLOSED],
 	[-90, 90, 135, 45, Arm.CLAW_OPEN],
 	[90, 90, 90, 0, Arm.CLAW_CLOSED],
 	[-90, 90, 90, 0, Arm.CLAW_OPEN],
@@ -182,13 +186,14 @@ if __name__ == "__main__":
 	if platform.system() == 'Darwin':
 		port = '/dev/tty.usbserial-FTF7FUMR'
 	else:
-		port = 'COM3'
+		port = 'COM8'
+		# port = '/dev/ttyS9'
 
-	if not os.path.exists(port):
-		print('ERROR: {} does not exist'.format(port))
-		exit(1)
+	# if not os.path.exists(port):
+	# 	print('ERROR: {} does not exist'.format(port))
+	# 	exit(1)
 
-	arm = Arm(port)
+	arm = Arm(port, pwm=[700, 2400])
 
 	_, mode = sys.argv
 	if mode == 'angle' or mode == 'a':

@@ -41,9 +41,11 @@ if __name__ == '__main__':
 		print("    test [servo_num] [angle_deg]")
 		exit(1)
 
-	# port = 'COM3'
-	port = '/dev/tty.usbserial-FTF7FUMR'
-	ser = serial.Serial(port, 115200)
+	port = 'COM10'
+	# port = '/dev/tty.usbserial-FTF7FUMR'
+	speed = 9600
+	# speed = 115200
+	ser = serial.Serial(port, speed)
 	if not ser.isOpen():
 		raise Exception('Arm::init() could not open', port)
 
